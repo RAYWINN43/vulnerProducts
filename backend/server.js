@@ -48,8 +48,8 @@ async function insertRandomUsers() {
       const password = u.login.password;
       const email = u.email;
 
-      db.run(
-        `INSERT INTO users (username, email, password, is_admin) VALUES ('${username}', '${email}', '${password}', 0)`,
+      db.prepare(
+        `INSERT INTO users (username, email, password, is_admin) VALUES (?, ?, ?, 0)`,
         (err) => {
           if (err) console.error(err.message);
         }
@@ -104,12 +104,14 @@ app.get('/products/search', (req, res) => {
 
   console.log(req.query.q);
   
+  const SearchTerm = `%${searchTerm}%`;
   
-  const query = `SELECT * FROM products WHERE title LIKE '%${searchTerm}%' OR description LIKE '%${searchTerm}%' OR category LIKE '%${searchTerm}%'`;
+  
+  const query = `SELECT * FROM products WHERE title LIKE ? OR description LIKE ? OR category LIKE ?`;
   
   console.log('Search query:', query);
   
-  db.all(query, [], (err, rows) => {
+  db.all(query, [SearchTerm,SearchTerm,SearchTerm], (err, rows) => {
     if (err) {
       console.error('SQL Error:', err.message);
       return res.status(500).json({ error: err.message });
@@ -128,8 +130,8 @@ app.get('/products', (req, res) => {
 
 app.get('/products/:id', (req, res) => {
     const productId = req.params.id
-
-    const query = `SELECT * FROM products WHERE id = ${productId}`;
+    
+    const query = `SELECT * FROM products WHERE id = ?`;
 
     db.get(query, [], (err, rows) => {
         if (err)
