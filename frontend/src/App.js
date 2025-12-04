@@ -54,24 +54,34 @@ function HomePage() {
     }
   };
 
-  const handleSearch = async (e) => {
+    const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
+    setSearchResults([]);
+    return;
+  }
 
-    setSearching(true);
-    try {
-      const response = await axios.get(`http://localhost:8000/products/search?q=${searchQuery}`);
-      setSearchResults(response.data);
-      setSearching(false);
-    } catch (err) {
-      console.error('Search error:', err);
-      alert('Search failed: ' + err.message);
-      setSearching(false);
-    }
-  };
+  const forbidden = ['INSERT', 'DELETE', 'UPDATE', 'DROP', 'ALTER', 'TRUNCATE','UNION'];
+  const cleanQuery = searchQuery.replace(/[^a-zA-Z0-9\s]/g, ''); 
+
+  const upperQuery = cleanQuery.toUpperCase();
+  if (forbidden.some(cmd => upperQuery.includes(cmd))) {
+    alert('ce sont des mots interdit veuillez changer');
+    return;
+  }
+
+  setSearching(true);
+  try {
+    const response = await axios.get(`http://localhost:8000/products/search?q=${encodeURIComponent(cleanQuery)}`);
+    setSearchResults(response.data);
+    setSearching(false);
+  } catch (err) {
+    console.error('Search error:', err);
+    alert('Search failed: ' + err.message);
+    setSearching(false);
+  }
+};
+
 
   const clearSearch = () => {
     setSearchQuery('');
